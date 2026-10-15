@@ -1,0 +1,17 @@
+data/
+models/
+results/
+__pycache__/
+*.pyc
+.venv/
+.env
+.DS_Store
+
+# Local configuration and credentials.
+/local_experiments/
+.env.*
+!.env.example
+*.local.sh
+*.local.json
+*.local.yaml
+*.local.yml
