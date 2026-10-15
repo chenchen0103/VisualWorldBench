@@ -13,7 +13,7 @@ conda create -n visualworldbench python=3.10.19 -y
 conda activate visualworldbench
 python -m pip install --no-deps -r requirements.txt
 hf download orange0318/VisualWorldBench --repo-type dataset \
-  --revision c83a24bc1ce444216527f2ec8d10f9830dfd51f7 --local-dir ./data
+  --revision 31cd7e3d037898df2a1a94d1bb8e15ba65e9630c --local-dir ./data
 ```
 
 The data directory must contain the task JSONL files and `images/`.

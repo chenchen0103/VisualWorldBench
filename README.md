@@ -28,7 +28,7 @@ vLLM 0.13.0, PyTorch 2.9.0, and Transformers 4.57.3. See the
 
 ```bash
 hf download orange0318/VisualWorldBench --repo-type dataset \
-  --revision c83a24bc1ce444216527f2ec8d10f9830dfd51f7 --local-dir ./data
+  --revision 31cd7e3d037898df2a1a94d1bb8e15ba65e9630c --local-dir ./data
 hf download Qwen/Qwen3-VL-2B-Instruct --local-dir ./models/Qwen3-VL-2B-Instruct
 ```
 
