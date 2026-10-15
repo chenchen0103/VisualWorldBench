@@ -169,7 +169,7 @@ def normalize_question(
     if is_grid_bench and "prompt" in q and isinstance(q.get("prompt"), str):
         nq["prompt"] = q.get("prompt")
 
-    # 可选：保留一些信息方便 error log
+    # Preserve identifiers and metadata for prediction and error records.
     for k in ("qid", "gt_id", "gt_name", "meta", "class_id", "class_name", "grid_id", "bbox_abs"):
         if k in q:
             nq[k] = q[k]
@@ -177,61 +177,9 @@ def normalize_question(
 
 def build_prompt(options: List[str], prompt_style: str = "plain", prompt_override: Optional[str] = None, meta: Optional[Dict] = None) -> str:
     if prompt_override and prompt_override.strip():
-        base = prompt_override.strip()
-        if prompt_style == "think":
-            return (
-                f"{base}\n"
-                "First provide concise visual reasoning, then provide the final option number.\n"
-                "Use exact output format:\n"
-                "<think>...</think>\n"
-                "<answer>number</answer>"
-            )
-        return base
-
-    # iNat21 prompt style (uses letter options A, B, C, D)
-    if prompt_style == "inat21":
-        prompt_order = meta.get("prompt_order", 1) if meta else 1
-
-        # Determine organism type from dataset metadata
-        dataset_name = meta.get("dataset", "") if meta else ""
-        if "plant" in dataset_name:
-            organism = "plant"
-        else:
-            organism = "animal"
-
-        # Prompt templates (organism type determined by dataset)
-        prompt_templates = {
-            0: f"What is the taxonomic category of the {organism} in this image?",
-            1: f"How can the {organism} in this image be categorized in taxonomy?",
-            2: f"Based on classification, what type of {organism} is this?",
-            3: f"What is the hierarchical class of the {organism} shown here?",
-            4: f"Where does this {organism} belong in the taxonomic hierarchy?"
-        }
-
-        question = prompt_templates.get(prompt_order, prompt_templates[0])
-
-        # Use letter options (A, B, C, D)
-        letters = ["A", "B", "C", "D"]
-        option_text = "\n".join([f"{letters[i]}. {name}" for i, name in enumerate(options)])
-
-        return (
-            f"{question}\n"
-            f"{option_text}\n"
-            "Answer with the option's letter from the given choices directly."
-        )
+        return prompt_override.strip()
 
     n = len(options)
-    if prompt_style == "think":
-        option_text = "\n".join([f"{i}. {name}" for i, name in enumerate(options, 1)])
-        return (
-            "<image>\n"
-            f"Choose the correct category label for the image 1-{n}.\n"
-            "First provide concise visual reasoning, then provide the final option number.\n"
-            "Use exact output format:\n"
-            "<think>...</think>\n"
-            "<answer>number</answer>\n"
-            f"{option_text}"
-        )
     option_text = "\n".join([f"{i}: {name}" for i, name in enumerate(options, 1)])
     return (
         f"Look at the object(s) in the image and choose the single best category from 1-{n}. "
@@ -273,41 +221,6 @@ def build_prompt_for_task(q: Dict[str, Any], task_type: str, prompt_style: str) 
 
 def parse_index(text: str, n_options: int, prompt_style: str = "plain") -> Optional[int]:
     stripped = (text or "").strip()
-
-    # iNat21 uses letter options (A, B, C, D)
-    if prompt_style == "inat21":
-        # Try to extract letter answer
-        letter_patterns = [
-            r"(?is)<answer>\s*([A-D])\s*</answer>",
-            r"(?is)<final_answer>\s*([A-D])\s*</final_answer>",
-            r"(?im)^\s*(?:answer|final\s+answer|答案|最终答案)\s*[:：]?\s*([A-D])\s*$",
-            r"(?is)(?:answer|final\s+answer|答案|最终答案)\s*(?:is|=|:|：)\s*([A-D])",
-        ]
-        for pat in letter_patterns:
-            m = re.search(pat, stripped)
-            if m:
-                letter = m.group(1).upper()
-                idx = ord(letter) - ord('A')
-                if 0 <= idx < n_options:
-                    return idx
-
-        # Try standalone letter on its own line
-        for line in reversed(stripped.splitlines()):
-            line = line.strip()
-            if re.fullmatch(r"[A-D]", line, re.IGNORECASE):
-                letter = line.upper()
-                idx = ord(letter) - ord('A')
-                if 0 <= idx < n_options:
-                    return idx
-
-        # Fallback: find any letter A-D in the text
-        for m in re.finditer(r"\b([A-D])\b", stripped, re.IGNORECASE):
-            letter = m.group(1).upper()
-            idx = ord(letter) - ord('A')
-            if 0 <= idx < n_options:
-                return idx
-
-        return None
 
     # Number-based parsing
     if re.fullmatch(r"-?\d+", stripped):

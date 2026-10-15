@@ -54,23 +54,12 @@ def _sort_datasets(datasets: List[str]) -> List[str]:
     """Sort datasets by predefined order."""
     # Define benchmark order priority
     order_map = {
-        # MCQ
-        "mcq_all": 1,
-        "mcq_bamboo_all.jsonl": 1,
-        "mcq_bamboo_hard.jsonl": 2,
-        # Grid-Loc
-        "grid_2x2_loc": 3,
-        "grid_2x2_loc.jsonl": 3,
-        "grid_3x3_loc": 4,
-        "grid_3x3_loc.jsonl": 4,
-        # Grid-Box
-        "grid_2x2_box@iou0.5": 5,
-        "grid_3x3_box@iou0.5": 6,
-        # Open
-        "open_v1_all@exact_match": 7,
-        # Grid-Loc-Hard
-        "bench_hard_2x2_loc.jsonl": 8,
-        "bench_hard_3x3_loc.jsonl": 9,
+        "mcq": 1,
+        "sel_2x2": 2,
+        "sel_3x3": 3,
+        "loc_2x2": 4,
+        "loc_3x3": 5,
+        "open_qa": 6,
     }
 
     def sort_key(ds: str) -> Tuple[int, str]:

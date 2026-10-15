@@ -58,16 +58,10 @@ def normalize_question(
     task_type: str = "mcq",
     is_grid_bench: bool = False,
 ) -> Dict[str, Any]:
-    """
-    支持三种输入：
-    A) 旧格式：image_path + options(list[str]) + answer_index
-    B) 新bench格式：image + options(list[dict{id,name,type}]) + gt_index
-    C) grid定位格式：image + prompt + choices(list[str]) + answer("1".."N")
-    输出统一成：
-      image_path: str
-      options: list[str]
-      answer_index: int
-      (可选保留原始信息: qid, gt_id, meta...)
+    """Normalize MCQ, grid selection, localization, and Open-QA records.
+
+    Accepts string or structured options, grid-cell choices, and box targets.
+    Preserves optional identifiers and metadata when available.
     """
     if task_type == "grid_box":
         image_path = q.get("image_path") or q.get("image")
@@ -211,7 +205,7 @@ def normalize_question(
     if is_grid_bench and "prompt" in q and isinstance(q.get("prompt"), str):
         nq["prompt"] = q.get("prompt")
 
-    # 可选：保留一些信息方便 error log
+    # Preserve identifiers and metadata for prediction and error records.
     for k in ("qid", "gt_id", "gt_name", "meta", "class_id", "class_name", "grid_id", "bbox_abs"):
         if k in q:
             nq[k] = q[k]
@@ -228,8 +222,7 @@ def load_questions(path: str, *, task_type: str = "mcq") -> List[Dict[str, Any]]
             if not line:
                 continue
             raw = json.loads(line)
-            # Grid benches are primarily identified by filename, but we also
-            # fallback to schema-based detection for files like bench_hard_2x2_loc.jsonl.
+            # Detect grid selection records from the filename or record schema.
             is_grid_bench = is_grid_bench_file
             if isinstance(raw, dict) and not is_grid_bench:
                 if isinstance(raw.get("choices"), list) and raw.get("answer") is not None:
@@ -246,7 +239,6 @@ def load_questions(path: str, *, task_type: str = "mcq") -> List[Dict[str, Any]]
             try:
                 data.append(normalize_question(raw, task_type=task_type, is_grid_bench=is_grid_bench))
             except Exception as e:
-                # 你也可以选择 print 或跳过
                 print(f"[WARN] skip bad question: {repr(e)}")
     return data
 
@@ -340,61 +332,9 @@ def finalize_task_result(task_type: str, base: Dict[str, Any], output_text: str,
 
 def build_prompt(options: List[str], prompt_style: str = "plain", prompt_override: Optional[str] = None, meta: Optional[Dict] = None) -> str:
     if prompt_override and prompt_override.strip():
-        base = prompt_override.strip()
-        if prompt_style == "think":
-            return (
-                f"{base}\n"
-                "First provide concise visual reasoning, then provide the final option number.\n"
-                "Use exact output format:\n"
-                "<think>...</think>\n"
-                "<answer>number</answer>"
-            )
-        return base
-
-    # iNat21 prompt style (uses letter options A, B, C, D)
-    if prompt_style == "inat21":
-        prompt_order = meta.get("prompt_order", 1) if meta else 1
-
-        # Determine organism type from dataset metadata
-        dataset_name = meta.get("dataset", "") if meta else ""
-        if "plant" in dataset_name:
-            organism = "plant"
-        else:
-            organism = "animal"
-
-        # Prompt templates (organism type determined by dataset)
-        prompt_templates = {
-            0: f"What is the taxonomic category of the {organism} in this image?",
-            1: f"How can the {organism} in this image be categorized in taxonomy?",
-            2: f"Based on classification, what type of {organism} is this?",
-            3: f"What is the hierarchical class of the {organism} shown here?",
-            4: f"Where does this {organism} belong in the taxonomic hierarchy?"
-        }
-
-        question = prompt_templates.get(prompt_order, prompt_templates[0])
-
-        # Use letter options (A, B, C, D)
-        letters = ["A", "B", "C", "D"]
-        option_text = "\n".join([f"{letters[i]}. {name}" for i, name in enumerate(options)])
-
-        return (
-            f"{question}\n"
-            f"{option_text}\n"
-            "Answer with the option's letter from the given choices directly."
-        )
+        return prompt_override.strip()
 
     n = len(options)
-    if prompt_style == "think":
-        option_text = "\n".join([f"{i}. {name}" for i, name in enumerate(options, 1)])
-        return (
-            "<image>\n"
-            f"Choose the correct category label for the image 1-{n}.\n"
-            "First provide concise visual reasoning, then provide the final option number.\n"
-            "Use exact output format:\n"
-            "<think>...</think>\n"
-            "<answer>number</answer>\n"
-            f"{option_text}"
-        )
     option_text = "\n".join([f"{i}: {name}" for i, name in enumerate(options, 1)])
     return (
         f"Look at the object(s) in the image and choose the single best category from 1-{n}. "
@@ -458,41 +398,6 @@ def _apply_chat_template(processor, messages, *, thinking_mode: str = "auto", **
 
 def parse_index(text: str, n_options: int, prompt_style: str = "plain") -> Optional[int]:
     stripped = (text or "").strip()
-
-    # iNat21 uses letter options (A, B, C, D)
-    if prompt_style == "inat21":
-        # Try to extract letter answer
-        letter_patterns = [
-            r"(?is)<answer>\s*([A-D])\s*</answer>",
-            r"(?is)<final_answer>\s*([A-D])\s*</final_answer>",
-            r"(?im)^\s*(?:answer|final\s+answer|答案|最终答案)\s*[:：]?\s*([A-D])\s*$",
-            r"(?is)(?:answer|final\s+answer|答案|最终答案)\s*(?:is|=|:|：)\s*([A-D])",
-        ]
-        for pat in letter_patterns:
-            m = re.search(pat, stripped)
-            if m:
-                letter = m.group(1).upper()
-                idx = ord(letter) - ord('A')
-                if 0 <= idx < n_options:
-                    return idx
-
-        # Try standalone letter on its own line
-        for line in reversed(stripped.splitlines()):
-            line = line.strip()
-            if re.fullmatch(r"[A-D]", line, re.IGNORECASE):
-                letter = line.upper()
-                idx = ord(letter) - ord('A')
-                if 0 <= idx < n_options:
-                    return idx
-
-        # Fallback: find any letter A-D in the text
-        for m in re.finditer(r"\b([A-D])\b", stripped, re.IGNORECASE):
-            letter = m.group(1).upper()
-            idx = ord(letter) - ord('A')
-            if 0 <= idx < n_options:
-                return idx
-
-        return None
 
     # Number-based parsing
     if re.fullmatch(r"-?\d+", stripped):
@@ -905,8 +810,8 @@ def run_vllm(args) -> int:
         total = resume_total_n
         if total:
             acc = correct / total
-            print(f"总样本数(计入分母): {total}")
-            print(f"Top-1 准确率: {acc:.4f}")
+            print(f"Samples in denominator: {total}")
+            print(f"Top-1 accuracy: {acc:.4f}")
             if _is_index_task(args.task_type):
                 for score_path in _iter_score_paths(args.score_path):
                     update_score_tsv(
@@ -915,9 +820,9 @@ def run_vllm(args) -> int:
                         dataset_name=dataset_stem,
                         score=acc,
                     )
-                    print(f"得分表已更新: {score_path}")
+                    print(f"Score table updated: {score_path}")
         else:
-            print("没有待处理样本，且没有可计分的已完成样本。")
+            print("No pending samples or completed samples available for scoring.")
 
         _write_metrics(
             args.metrics_path,
@@ -926,10 +831,10 @@ def run_vllm(args) -> int:
             correct=correct,
             total=total,
         )
-        print(f"错误样本已保存到: {error_path}")
-        print(f"基础设施失败样本已保存到: {infra_error_path}")
+        print(f"Error records saved to: {error_path}")
+        print(f"Infrastructure failure records saved to: {infra_error_path}")
         if pred_path:
-            print(f"逐条预测已保存到: {pred_path}")
+            print(f"Predictions saved to: {pred_path}")
         return 0
 
     ctx = mp.get_context("spawn")
@@ -1044,8 +949,8 @@ def run_vllm(args) -> int:
 
         if total:
             acc = correct / total
-            print(f"总样本数(计入分母): {total}")
-            print(f"Top-1 准确率: {acc:.4f}")
+            print(f"Samples in denominator: {total}")
+            print(f"Top-1 accuracy: {acc:.4f}")
             if _is_index_task(args.task_type):
                 for score_path in _iter_score_paths(args.score_path):
                     update_score_tsv(
@@ -1054,11 +959,11 @@ def run_vllm(args) -> int:
                         dataset_name=dataset_stem,
                         score=acc,
                     )
-                    print(f"得分表已更新: {score_path}")
+                    print(f"Score table updated: {score_path}")
         elif not _is_index_task(args.task_type):
-            print("回答生成结束；Open-QA / Grid-Loc 的分数由独立计分程序计算。")
+            print("Response generation complete; score Open-QA and Grid-Loc with the scoring tools.")
         else:
-            print("没有有效样本被评测（请求失败或读取失败）。")
+            print("No valid samples were evaluated (request or input failures).")
 
         _write_metrics(
             args.metrics_path,
@@ -1067,9 +972,9 @@ def run_vllm(args) -> int:
             correct=correct,
             total=total,
         )
-        print(f"错误样本已保存到: {error_path}")
+        print(f"Error records saved to: {error_path}")
         if pred_path:
-            print(f"逐条预测已保存到: {pred_path}")
+            print(f"Predictions saved to: {pred_path}")
         return 0
     finally:
         if not writers_drained:

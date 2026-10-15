@@ -129,14 +129,14 @@ def main():
         print(f'{task}: GPUs {gpus[:worker_count(args.model_size, task)]}, TP=1, batch={args.batch_size}, max_tokens={args.max_tokens}')
     if args.check_only:
         return 0
-    # Use the tested inference settings rather than unrelated environment overrides.
+    # Set inference environment variables for this runner.
     os.environ['VLLM_WORKER_MULTIPROC_METHOD'] = 'spawn'
     for key in ['VLLM_USE_V1', 'VLLM_ENABLE_V1_MULTIPROCESSING', 'VLLM_BATCH_INVARIANT',
                 'VLLM_ATTENTION_BACKEND', 'VLLM_USE_FLASHINFER_SAMPLER']:
         os.environ.pop(key, None)
     output = (args.output or Path('results') / (args.model_name + '-' + datetime.now().strftime('%Y%m%d-%H%M%S'))).resolve()
     output.mkdir(parents=True, exist_ok=False)
-    # Keep one small per-run configuration with the output, not a repository of audit records.
+    # Save the run configuration alongside predictions and scores.
     run_config = {'model': str(args.model), 'model_name': args.model_name,
                   'data_dir': str(args.data_dir), 'tasks': tasks,
                   'prompt_styles': {task: prompt_style(task) for task in tasks},
