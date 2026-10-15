@@ -19,9 +19,6 @@ Expected bench-dir structure:
       loc_3x3.jsonl
       open_qa.jsonl
 
-Alternative benchmark names such as grid_2x2_loc.jsonl and grid_2x2_box.jsonl are
-also accepted for compatibility.
-
 Expected pred-dir structure:
     predictions/
       mcq/<model_name>/mcq.jsonl
@@ -31,8 +28,6 @@ Expected pred-dir structure:
       loc_3x3/<model_name>/loc_3x3.jsonl
       open_qa/<model_name>/open_qa.jsonl
 
-Alternative prediction subdirectories such as grid_2x2_loc/ and grid_2x2_box/ are
-also accepted for compatibility.
 """
 import argparse
 import json

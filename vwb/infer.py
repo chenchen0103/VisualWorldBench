@@ -2,7 +2,7 @@
 """VisualWorldBench inference script.
 
 Runs inference on all four benchmark tasks using an OpenAI-compatible API.
-Produces structured prediction files that can be scored by score_bench.py.
+Produces structured prediction files that can be scored by score.py.
 
 Usage:
     # OpenAI-compatible API
@@ -380,7 +380,7 @@ def main():
     parser.add_argument("--api-key", default=None, help="API key (or set OPENAI_API_KEY env var).")
     parser.add_argument("--tasks", default="all", help="Comma-separated task keys to run, or 'all'.")
     parser.add_argument("--num-workers", type=int, default=32, help="Concurrent API workers.")
-    parser.add_argument("--max-tokens", type=int, default=2048, help="Max output tokens; match the model-specific experimental setting.")
+    parser.add_argument("--max-tokens", type=int, default=2048, help="Maximum output tokens per response.")
     parser.add_argument("--temperature", type=float, default=0.0, help="Sampling temperature.")
     parser.add_argument("--timeout", type=int, default=120, help="Per-request timeout in seconds.")
     parser.add_argument("--max-retries", type=int, default=3, help="Max retries per request.")

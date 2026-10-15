@@ -4,7 +4,7 @@ Evaluates model predictions against ground-truth bounding boxes using IoU metric
 Coordinates are normalized to [0, 1000] where (0,0) is top-left and (1000,1000) is bottom-right.
 
 Usage:
-    python score_grid_box.py --pred-dir <pred_jsonl> --output <output_json> [--bench-jsonl <bench_file>]
+    python -m vwb.score_grid_box --pred-dir <pred_jsonl> --output <output_json> [--bench-jsonl <bench_file>]
 """
 from __future__ import annotations
 

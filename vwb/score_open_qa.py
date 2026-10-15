@@ -1,10 +1,10 @@
 """Score Open-QA predictions via exact match with alias expansion.
 
 Evaluates model free-form text predictions against canonical labels and alias sets.
-Supports hierarchical ancestor scoring and domain/depth-stratified analysis.
+Reports overall and per-domain exact-match scores.
 
 Usage:
-    python score_open_qa.py --pred-dir <pred_jsonl> --output <output_json> [--bench-jsonl <bench_file>]
+    python -m vwb.score_open_qa --pred-dir <pred_jsonl> --output <output_json> [--bench-jsonl <bench_file>]
 """
 from __future__ import annotations
 

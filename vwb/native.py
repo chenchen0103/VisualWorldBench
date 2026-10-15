@@ -227,7 +227,7 @@ def load_questions(path: str, *, task_type: str = "mcq") -> List[Dict[str, Any]]
             if isinstance(raw, dict) and not is_grid_bench:
                 if isinstance(raw.get("choices"), list) and raw.get("answer") is not None:
                     is_grid_bench = True
-            # Resolve relative image path early so both vLLM/OpenAI paths work.
+            # Resolve image paths relative to the input file.
             if isinstance(raw, dict):
                 meta = raw.get("meta")
                 if not isinstance(meta, dict):
