@@ -3,7 +3,8 @@
 Evaluation code for **VisualWorldBench: A Fine-Grained Multi-Task Benchmark for
 Evaluating Visual World Knowledge in MLLMs**.
 
-[Dataset](https://huggingface.co/datasets/orange0318/VisualWorldBench) ·
+[Evaluation dataset](https://huggingface.co/datasets/orange0318/VisualWorldBench) ·
+[Training dataset (VisualWorldBench-50K)](https://huggingface.co/datasets/orange0318/VisualWorldBench-50K) ·
 [Environment](docs/environment.md) · [Evaluation protocol](docs/evaluation.md) ·
 [API inference and Open-QA](docs/openqa.md)
 
