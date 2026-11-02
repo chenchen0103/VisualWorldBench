@@ -8,9 +8,8 @@ The local runner uses native offline inference with temperature 0, top_p 1,
 batch size 258 per worker, 2048 output tokens, automatic BF16/model context,
 and TP=1 per worker.
 MCQ uses eight independent workers; Grid-Sel uses one for 2B and eight for
-4B/8B; Grid-Loc uses four. It preserves dataset order, complete target questions,
-native image preprocessing, and chat-template behavior. This is data parallel
-inference, not a single TP=8 server.
+4B/8B; Grid-Loc uses four. Workers process the dataset in parallel with
+TP=1, native image preprocessing, and the model's chat template.
 
 ## Scoring
 
@@ -27,16 +26,17 @@ python score.py --bench-dir ./data \
 | Grid-Loc | Fraction with bounding-box IoU ≥ 0.5 |
 | Open-QA | Alias exact match plus judge-approved answers |
 
-Scores are fractions, not percentages. Parse failures count as incorrect.
+Scores are reported on a 0–1 scale. Parse failures count as incorrect.
 Before scoring each task, prediction qids must cover its benchmark exactly once.
 Missing, duplicate, unknown or malformed records and infrastructure failures
 cause scoring to fail. Retry failed requests before scoring.
 The default `--tasks auto` scores existing task files only, validating each one;
 use an explicit task list to require those files, or `--tasks all` to require
-all six task files. Missing tasks never produce an overall score.
+all six task files.
 The option and bbox parsers match the native evaluation rules, including
 coordinate clipping to [0,1000] and corner ordering. MCQ/Grid-Sel scoring uses
 stored correctness flags when present.
 
 The overall score is the mean of MCQ, mean(Grid-Sel), mean(Grid-Loc), and
-judge-corrected Open-QA. It remains unavailable without completed Open-QA judgments.
+judge-corrected Open-QA. Computing it requires all four tasks and completed
+Open-QA judgments.

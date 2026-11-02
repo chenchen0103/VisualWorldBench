@@ -29,11 +29,14 @@ vLLM 0.13.0, PyTorch 2.9.0, and Transformers 4.57.3. See the
 
 ```bash
 hf download orange0318/VisualWorldBench --repo-type dataset \
-  --revision 31cd7e3d037898df2a1a94d1bb8e15ba65e9630c --local-dir ./data
+  --revision 76389e98a8de1af4ec94bbb8ff2f2785e3f16991 --local-dir ./data
 hf download Qwen/Qwen3-VL-2B-Instruct --local-dir ./models/Qwen3-VL-2B-Instruct
 ```
 
-The data directory must contain the task JSONL files and `images/`.
+The download includes task annotations and grid images. Retrieve single images
+using the `image_url` and source-path fields in `mcq.jsonl` and `open_qa.jsonl`,
+and save them to their recorded `image` paths under `./data` before evaluation.
+Dataset-page links require obtaining and extracting the corresponding source dataset.
 
 ### 3. Run evaluation
 
@@ -43,8 +46,7 @@ python evaluate.py --data-dir ./data \
 ```
 
 The default run evaluates **MCQ, Grid-Sel, and Grid-Loc** (30,332 samples).
-It does not call a judge or run Open-QA. Predictions, run settings, and scores
-are saved under a new directory in `results/`.
+Predictions, run settings, and scores are saved under a new directory in `results/`.
 
 To run 2B → 4B → 8B sequentially after downloading all three models:
 
@@ -53,8 +55,8 @@ MODEL_ROOT=./models DATA_DIR=./data bash scripts/run_qwen3_vl.sh
 ```
 
 See [running Qwen3-VL](docs/running.md) for model downloads, offline use, and
-input checks. Open-QA is a separate, optional step described in
-[the Open-QA guide](docs/openqa.md); there is no default judge model.
+input checks. See [the Open-QA guide](docs/openqa.md) to run the fourth task
+and configure its judge model.
 
 ### 4. Score saved predictions
 
@@ -64,9 +66,8 @@ python score.py --bench-dir ./data \
   --tasks mcq,sel_2x2,sel_3x3,loc_2x2,loc_3x3
 ```
 
-Scores are fractions. Missing predictions and infrastructure failures must be
-resolved before scoring. The four-task overall score requires completed
-Open-QA judgments. See [evaluation and scoring rules](docs/evaluation.md).
+Scores are reported on a 0–1 scale. The four-task overall score requires
+completed Open-QA judgments. See [evaluation and scoring rules](docs/evaluation.md).
 
 ## Repository layout
 

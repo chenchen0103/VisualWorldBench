@@ -3,7 +3,6 @@
 Run commands from the repository root. Relative data, model, and output paths
 in the shell launchers are resolved from the repository root.
 
-
 Download the desired Instruct checkpoint(s):
 
 ```bash
@@ -18,7 +17,9 @@ Run **2B → 4B → 8B sequentially** on eight available GPUs:
 MODEL_ROOT=./models DATA_DIR=./data bash scripts/run_qwen3_vl.sh
 ```
 
-To combine dataset download, input checks, and the same sequential evaluation:
+After preparing the single images as described in
+[data preparation](../README.md#2-download-the-dataset-and-a-model), use the
+combined download and evaluation launcher:
 
 ```bash
 MODEL_ROOT=./models bash scripts/download_and_evaluate.sh
@@ -46,6 +47,6 @@ Add `--check-only` to validate data and paths without loading a model, or
 selects available physical devices.
 
 The default run covers 30,332 questions: MCQ 14,717; Grid-Sel 4,085/4,125;
-Grid-Loc 3,959/3,446. **No Open-QA or judge calls are made by this launcher.**
+Grid-Loc 3,959/3,446. See [Open-QA](openqa.md) for the fourth task.
 Predictions and `scores.tsv` are saved under `results/`. Each run requires a
-new output directory. Missing outputs and infrastructure failures stop the run.
+new output directory.

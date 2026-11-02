@@ -26,7 +26,7 @@ export DATA_DIR="${DATA_DIR:-$PWD/data}"
 export MODEL_SIZES="${MODEL_SIZES:-2B 4B 8B}"
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
 export OUTPUT_ROOT="${OUTPUT_ROOT:-$PWD/results/qwen3-vl-$(date +%Y%m%d-%H%M%S)-$$}"
-DATASET_REVISION=31cd7e3d037898df2a1a94d1bb8e15ba65e9630c
+DATASET_REVISION=76389e98a8de1af4ec94bbb8ff2f2785e3f16991
 
 if [[ -z "${MODEL_SIZES// /}" ]]; then
   printf 'MODEL_SIZES must not be empty.\n' >&2

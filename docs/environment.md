@@ -13,9 +13,11 @@ conda create -n visualworldbench python=3.10.19 -y
 conda activate visualworldbench
 python -m pip install --no-deps -r requirements.txt
 hf download orange0318/VisualWorldBench --repo-type dataset \
-  --revision 31cd7e3d037898df2a1a94d1bb8e15ba65e9630c --local-dir ./data
+  --revision 76389e98a8de1af4ec94bbb8ff2f2785e3f16991 --local-dir ./data
 ```
 
-The data directory must contain the task JSONL files and `images/`.
+Retrieve single images from the upstream links and source paths in the annotations,
+then save them under `./data` at their recorded `image` paths. Grid images are
+included in the download. See [data preparation](../README.md#2-download-the-dataset-and-a-model).
 Set `PYTHON=/path/to/environment/bin/python` when running the shell scripts with
 a different Python environment.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate answers locally. This script does not call a paid judge API.
+# Generate Open-QA answers with the local Qwen3-VL-8B model.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PYTHON="${PYTHON:-python}"
