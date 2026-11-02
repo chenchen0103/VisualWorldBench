@@ -91,5 +91,3 @@ Run `python <entrypoint>.py --help` for the arguments of each command.
 ```bash
 python -m unittest discover -s tests -v
 ```
-
-The regression tests do not load a model or call a paid API.

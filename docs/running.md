@@ -43,7 +43,7 @@ python evaluate.py --data-dir ./data \
 
 Add `--check-only` to validate data and paths without loading a model, or
 `--tasks sel_2x2,sel_3x3` to select tasks. `--gpu-ids 0,1,2,3,4,5,6,7`
-selects available physical devices. The runner never stops other GPU jobs.
+selects available physical devices.
 
 The default run covers 30,332 questions: MCQ 14,717; Grid-Sel 4,085/4,125;
 Grid-Loc 3,959/3,446. **No Open-QA or judge calls are made by this launcher.**
