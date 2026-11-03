@@ -13,7 +13,7 @@ conda create -n visualworldbench python=3.10.19 -y
 conda activate visualworldbench
 python -m pip install --no-deps -r requirements.txt
 hf download orange0318/VisualWorldBench --repo-type dataset \
-  --revision 167d7f8501425665286af5e4e5e6f8ac662e15f1 --local-dir ./data
+  --revision 2f0e4f58808783f0da2f83aaf2b477f5be69f205 --local-dir ./data
 ```
 
 Retrieve single images from the upstream links and source paths in the annotations,
